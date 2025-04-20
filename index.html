@@ -29,25 +29,30 @@
     }
 
     async function updateQueue() {
-      const res = await fetch(`${baseURL}/api/v2/torrents/info?filter=downloading`, {
-        credentials: "include"
-      });
-      const torrents = await res.json();
+      try {
+        const res = await fetch(`${baseURL}/api/v2/torrents/info?filter=downloading`, {
+          credentials: "include"
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const torrents = await res.json();
 
-      const list = document.getElementById("torrentList");
-      list.innerHTML = "";
+        const list = document.getElementById("torrentList");
+        list.innerHTML = "";
 
-      torrents.forEach(t => {
-        const item = document.createElement("li");
-        item.textContent = `${t.name} — ETA: ${formatETA(t.eta)}`;
-        list.appendChild(item);
-      });
+        torrents.forEach(t => {
+          const item = document.createElement("li");
+          item.textContent = `${t.name} — ETA: ${formatETA(t.eta)}`;
+          list.appendChild(item);
+        });
+      } catch (e) {
+        document.getElementById("torrentList").innerHTML = `<li>Error: ${e.message}</li>`;
+      }
     }
 
     (async () => {
       await login();
       await updateQueue();
-      setInterval(updateQueue, 15000); // update every 15s
+      setInterval(updateQueue, 15000);
     })();
   </script>
 </body>
