@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Download Queue</title>
+</head>
+<body>
+  <h2>Current Downloads</h2>
+  <ul id="torrentList"></ul>
+
+  <script>
+    const baseURL = "https://corsproxy.io/?" + encodeURIComponent("http://192.168.86.77:8081");
+    const username = "AbdullahA216";
+    const password = "QBITT1122!";
+
+    async function login() {
+      await fetch(`${baseURL}/api/v2/auth/login`, {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
+        credentials: "include"
+      });
+    }
+
+    function formatETA(seconds) {
+      if (seconds < 0 || seconds > 9999999) return "N/A";
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      return `${h}h ${m}m`;
+    }
+
+    async function updateQueue() {
+      const res = await fetch(`${baseURL}/api/v2/torrents/info?filter=downloading`, {
+        credentials: "include"
+      });
+      const torrents = await res.json();
+
+      const list = document.getElementById("torrentList");
+      list.innerHTML = "";
+
+      torrents.forEach(t => {
+        const item = document.createElement("li");
+        item.textContent = `${t.name} — ETA: ${formatETA(t.eta)}`;
+        list.appendChild(item);
+      });
+    }
+
+    (async () => {
+      await login();
+      await updateQueue();
+      setInterval(updateQueue, 15000); // update every 15s
+    })();
+  </script>
+</body>
+</html>
